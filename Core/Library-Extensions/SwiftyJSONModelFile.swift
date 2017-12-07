@@ -12,6 +12,8 @@ import Foundation
  *  Provides support for SwiftyJSON library.
  */
 struct SwiftyJSONModelFile: ModelFile, DefaultModelFileComponent {
+    var superClassName: String?
+    
 
     var fileName: String
     var type: ConstructType

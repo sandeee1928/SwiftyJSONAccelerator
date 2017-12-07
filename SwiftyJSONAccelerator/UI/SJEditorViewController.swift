@@ -44,7 +44,10 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     @IBOutlet var setAsFinalCheckbox: NSButton!
     @IBOutlet var librarySelector: NSPopUpButton!
     @IBOutlet var modelTypeSelectorSegment: NSSegmentedControl!
-
+    @IBOutlet var jsonTypeSelectorSegment: NSSegmentedControl!
+    var jsonFilePath: URL?
+    
+    @IBOutlet weak var mappingCheckbox: NSButton!
     // MARK: View methods
     override func loadView() {
         super.loadView()
@@ -53,14 +56,38 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         textView!.lnv_setUpLineNumberView()
         resetErrorImage()
         authorNameTextField?.stringValue = NSFullUserName()
+        jsonTypeSelectorSegment.selectedSegment = 0
     }
 
     // MARK: Actions
     @IBAction func format(_ sender: AnyObject?) {
+        let fileUrl = self.jsonFilePath
+        var status = false
         if validateAndFormat(true) {
-            generateModel()
+            let object: AnyObject? = JSONHelper.convertToObject(textView?.string).1
+            if mappingCheckbox.state == 1 {
+                guard let object = object  else { return }
+                let json = JSON(object)
+                guard let jsonArray = json.array  else { return }
+                for tempJson in jsonArray {
+                    if let mappingList = tempJson["event_type_mapping"].array {
+                        for mapping in mappingList {
+                            if let schemaPath = mapping["schema_path"].string, let eventType = mapping["event_type"].string {
+                                if eventType.contains("analytics") {
+                                    if let dirPath = fileUrl?.deletingLastPathComponent() {
+                                        let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
+                                        status = generateModel(at: filePath) ?? false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                status = (generateModel() ?? false)
+            }
+            notify(fileCount: 0)
         }
-
     }
 
     @IBAction func handleMultipleFiles(_ sender: AnyObject?) {
@@ -125,36 +152,56 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     /**
    Actual function that generates the model.
    */
-    func generateModel() {
-
+    func generateModel(at path: String? = nil) -> Bool? {
+        var status = false
+        var currentProcessingFilePathUrl: URL!
         // The base class field is blank, cannot proceed without it.
         // Possibly can have a default value in the future.
-        if baseClassTextField?.stringValue.characters.count <= 0 {
+        if baseClassTextField?.stringValue.count <= 0 {
             let alert = NSAlert()
             alert.messageText = "Enter a base class name to continue."
             alert.runModal()
-            return
+            return status
         }
-
-        let filePath = openFile()
+        
+        var object: AnyObject?
+        
+        if let path = path {
+            let url = URL(fileURLWithPath: path)
+            guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
+                return status
+            }
+            currentProcessingFilePathUrl = url
+            object = JSONHelper.convertToObject(jsonString).1
+        } else {
+            object = JSONHelper.convertToObject(textView?.string).1
+        }
+    
+        let filePath = "/Users/prokarma/Documents/JSONSchema/Config/SwiftyJson/New_temp" //openFile()
 
         // No file path was selected, go back!
         if filePath == nil {
-            return
+            return status
         }
 
-        let object: AnyObject? = JSONHelper.convertToObject(textView?.string).1
+        
 
         // Checks for validity of the content, else can cause crashes.
         if object != nil {
 
+            let jsonObject = JSON(object!)
+            
+            let jsonType = JsonType(rawValue: jsonTypeSelectorSegment.selectedSegment)!
+            let baseClassName = (jsonType == .json) ? authorNameTextField.stringValue : (jsonObject["title"].string ?? "")
+            
+            
             let nsCodingState = self.enableNSCodingSupportCheckbox.state == 1 && (modelTypeSelectorSegment.selectedSegment == 1)
             let isFinalClass = self.setAsFinalCheckbox.state == 1 && (modelTypeSelectorSegment.selectedSegment == 1)
             let constructType = self.modelTypeSelectorSegment.selectedSegment == 0 ? ConstructType.StructType : ConstructType.ClassType
             let libraryType = libraryForIndex(self.librarySelector.indexOfSelectedItem)
             let configuration = ModelGenerationConfiguration.init(
-                                                                  filePath: filePath!.appending("/"),
-                                                                  baseClassName: baseClassTextField.stringValue,
+                                                                filePath: filePath.appending("/"),
+                                                                  baseClassName: baseClassName,
                                                                   authorName: authorNameTextField.stringValue,
                                                                   companyName: companyNameTextField.stringValue,
                                                                   prefix: prefixClassTextField.stringValue,
@@ -162,8 +209,10 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                                                                   modelMappingLibrary: libraryType,
                                                                   supportNSCoding: nsCodingState,
                                                                   isFinalRequired: isFinalClass,
-                                                                  isHeaderIncluded: includeHeaderImportCheckbox.state == 1 ? true : false)
-            let modelGenerator = ModelGenerator.init(JSON(object!), configuration)
+                                                                  isHeaderIncluded: includeHeaderImportCheckbox.state == 1 ? true : false,
+                                                                  jsonType: JsonType(rawValue: jsonTypeSelectorSegment.selectedSegment)!,
+                                                                  jsonFileURL: currentProcessingFilePathUrl)
+            var modelGenerator = ModelGenerator.init(jsonObject, configuration)
             let filesGenerated = modelGenerator.generate()
             for file in filesGenerated {
                 let content = FileGenerator.generateFileContentWith(file, configuration: configuration)
@@ -178,12 +227,19 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                     alert.runModal()
                 }
             }
-            notify(fileCount: filesGenerated.count)
+        
+            let files = filesGenerated.map({ (file) -> String in
+                let filename = "\(file.fileName).swift"
+                return filename
+            })
+            FileGenerator.indent(files: files, at: configuration.filePath)
+            status = true
         } else {
             let alert: NSAlert = NSAlert()
             alert.messageText = "Unable to save the file check the content."
             alert.runModal()
         }
+        return status
     }
 
     func libraryForIndex(_ index: Int) -> JSONMappingLibrary {
@@ -198,6 +254,22 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     @IBAction func recalcEnabledBoxes(_ sender: AnyObject) {
         self.enableNSCodingSupportCheckbox.isEnabled = (modelTypeSelectorSegment.selectedSegment == 1)
         self.setAsFinalCheckbox.isEnabled = (modelTypeSelectorSegment.selectedSegment == 1)
+    }
+    
+    @IBAction func uploadJSONFile(_ sender: NSButton) {
+        let openPannel = NSOpenPanel()
+        openPannel.begin { (result) in
+            if (result == NSFileHandlingPanelOKButton) {
+                if let url = openPannel.urls.first {
+                    guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
+                            return
+                    }
+                    self.jsonFilePath = url
+                    self.textView.string = jsonString
+                }
+                // Open  the document.
+            }
+        }
     }
 
     func notify(fileCount: Int) {

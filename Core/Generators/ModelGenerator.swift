@@ -32,8 +32,13 @@ public struct ModelGenerator {
    Generate the models for the structure based on the set configuration and content.
    - returns: An array of files that were generated.
    */
-    func generate() -> [ModelFile] {
-        return self.generateModelForJSON(baseContent, configuration.baseClassName, true)
+    mutating func generate() -> [ModelFile] {
+        if configuration.jsonType == .jsonSchema {
+            configuration.modelMappingLibrary = .Codable
+            return self.generateModelForJSON2(baseContent, getFileName(form: baseContent), true)
+        } else {
+            return self.generateModelForJSON(baseContent, configuration.baseClassName, true)
+        }
     }
 
     /**
@@ -49,6 +54,8 @@ public struct ModelGenerator {
 
         let className = NameGenerator.fixClassName(defaultClassName, self.configuration.prefix, isTopLevelObject)
         var modelFiles: [ModelFile] = []
+        
+        
 
         // Incase the object was NOT a dictionary. (this would only happen in case of the top level
         // object, since internal objects are handled within the function and do not pass an array here)
@@ -60,9 +67,8 @@ public struct ModelGenerator {
                 return self.generateModelForJSON(JSONHelper.reduce(rootObject), defaultClassName, isTopLevelObject)
             }
             return []
-
         }
-
+        
         if let rootObject = object.dictionary {
             // A model file to store the current model.
             var currentModel = self.initialiseModelFileFor(configuration.modelMappingLibrary)
@@ -74,7 +80,7 @@ public struct ModelGenerator {
                 let variableName = NameGenerator.fixVariableName(key)
                 let variableType = value.detailedValueType()
                 let stringConstantName = NameGenerator.variableKey(className, variableName)
-
+                
                 switch variableType {
                 case .Array:
                     if value.arrayValue.count <= 0 {
@@ -102,8 +108,7 @@ public struct ModelGenerator {
                     break
                 default:
                     currentModel.generateAndAddComponentsFor(PropertyComponent.init(variableName, variableType.rawValue, stringConstantName, key, .ValueType))
-                }
-
+                } 
             }
 
             modelFiles = [currentModel] + modelFiles
@@ -111,6 +116,124 @@ public struct ModelGenerator {
 
         // at the end we return the collection of files.
         return modelFiles
+    }
+    
+    func getFileName(form json: JSON) -> String {
+        if let fileName = json["javaType"].string?.components(separatedBy: ".").last {
+            return fileName
+        } else {
+            return ""
+        }
+    }
+    
+    mutating func generateModelForJSON2(_ object: JSON, _ defaultClassName: String, _ isTopLevelObject: Bool) -> [ModelFile] {
+        let className = NameGenerator.fixClassName(defaultClassName, self.configuration.prefix, isTopLevelObject)
+        let filePathUrl = configuration.jsonFileURL
+        var modelFiles: [ModelFile] = []
+        if let rootObject = object.dictionary {
+            var currentModel = self.initialiseModelFileFor(configuration.modelMappingLibrary)
+            currentModel.setInfo(className, configuration)
+            currentModel.sourceJSON = object
+            
+            var superInitPrams = [String]()
+            
+            if let extends = rootObject["extends"]?["$ref"].string, let extendsJSON = getJSON(fromFile: extends) {
+                let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+                modelFiles = modelFiles + models
+                if let model = models.first {
+                    currentModel.superClassName = model.fileName
+                    superInitPrams += (model.component.initParameters + model.component.superInitParameters)
+                }
+                configuration.jsonFileURL = filePathUrl
+            }
+            
+            if let properties = rootObject["properties"]?.dictionary {
+                for (key, value) in properties {
+                    
+                    let variableName = NameGenerator.fixVariableName(key)
+                    
+                    let dataType = value["type"].string ?? "object"
+                    var objectName = NameGenerator.fixClassName(variableName, "", false)
+                    
+                    if let _ = value["properties"].dictionary {
+                        let models = generateModelForJSON2(value, variableName, false)
+                        modelFiles = modelFiles + models
+                    } else if let ref = value["$ref"].string, let extendsJSON = getJSON(fromFile: ref) {
+                        let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+                        modelFiles = modelFiles + models
+                        if let model = models.first {
+                            objectName = model.fileName
+                        }
+                        configuration.jsonFileURL = filePathUrl
+                    }
+
+                    
+                    let variableType = getDetailedValueType(dataType)
+                    let isRequired = value["required"].bool ?? false
+                    let propertyType: PropertyType = (variableType == .Object) ? .ObjectType : .ValueType
+                    
+                    let type = (propertyType == .ObjectType) ? objectName : variableType.rawValue
+                    
+                    let propertyComponent = PropertyComponent(variableName, type,
+                                                          "",
+                                                          key,
+                                                          propertyType,
+                                                          isRequired,
+                                                          value["description"].string,
+                                                          value["$ref"].string)
+                    currentModel.generateAndAddComponentsFor(propertyComponent)
+                }
+                currentModel.updateComponent(superInitPrams)
+                modelFiles = [currentModel] + modelFiles
+            }
+        }
+        return modelFiles
+    }
+    
+    func getDetailedValueType(_ type: String) -> VariableType {
+        switch type.lowercased() {
+        case "string":
+            return VariableType.String
+        case "boolean", "bool":
+            return VariableType.Bool
+        case "int", "long":
+            return VariableType.Int
+        case "double":
+            return VariableType.Double
+        case "float":
+            return VariableType.Float
+        default:
+            return VariableType.Object
+        }
+    }
+    
+    mutating func getJSON(fromFile: String) -> JSON? {
+        
+        let paths = fromFile.components(separatedBy: "/")
+        let sss = paths.filter { (strig) -> Bool in
+            return strig == ".."
+        }
+        guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else { return nil }
+        
+//        var newPath = currentPath?.removeLast()
+        for _ in 0...sss.count {
+            currentPath.removeLast()
+        }
+        currentPath += paths[sss.count..<paths.count]
+        let newFilePath = currentPath.joined(separator: "/")
+        if let url = URL(string: newFilePath) {
+            
+            guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
+                return nil
+            }
+            configuration.updateJsonFileURL(url: url)
+            if let object = JSONHelper.convertToObject(jsonString).1 {
+                return JSON(object)
+            }
+        }
+        
+        
+        return nil
     }
 
     /**
@@ -147,6 +270,8 @@ public struct ModelGenerator {
             return SwiftyJSONModelFile()
         case .Marshal:
             return MarshalModelFile()
+        case .Codable:
+            return CodableModelFile()
         }
     }
 }

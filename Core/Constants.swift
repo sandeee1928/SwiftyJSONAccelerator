@@ -8,6 +8,17 @@
 
 import Foundation
 
+
+/// JSON type
+///
+/// - json: form json
+/// - jsonSchema: from JSON Schema
+enum JsonType: Int {
+    case json = 0
+    case jsonSchema = 1
+}
+
+
 /**
  Various supported variable types
 
@@ -49,6 +60,7 @@ enum ConstructType: String {
  - Marshal: Marshal - https://github.com/utahiosmac/Marshal
  */
 enum JSONMappingLibrary: String {
+  case Codable
   case SwiftyJSON
   case ObjectMapper
   case Marshal

@@ -108,6 +108,9 @@
 		93F174451BD0707D007E7DFC /* SJEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F174441BD0707D007E7DFC /* SJEditorViewController.swift */; };
 		93F174471BD0707D007E7DFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 93F174461BD0707D007E7DFC /* Assets.xcassets */; };
 		93F174601BD070AA007E7DFC /* JSONHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F1745F1BD070AA007E7DFC /* JSONHelper.swift */; };
+		B40CC4101FD66D3800E235FB /* CodableModelFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */; };
+		B4992AA11FD745C00053C580 /* CodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA01FD745C00053C580 /* CodableTemplate.txt */; };
+		B4992AA31FD74B290053C580 /* EncodableDecodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */; };
 		C667011B1BDCABCE009BA254 /* SwiftyJSONTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011A1BDCABCE009BA254 /* SwiftyJSONTemplate.txt */; };
 		C667011D1BDCAF23009BA254 /* ObjectMapperTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011C1BDCAF23009BA254 /* ObjectMapperTemplate.txt */; };
 		C667011F1BDCBE1F009BA254 /* NSCodingTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */; };
@@ -186,6 +189,9 @@
 		93F174501BD0707D007E7DFC /* SwiftyJSONAccelerator.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftyJSONAccelerator.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		93F174561BD0707D007E7DFC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		93F1745F1BD070AA007E7DFC /* JSONHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONHelper.swift; sourceTree = "<group>"; };
+		B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableModelFile.swift; sourceTree = "<group>"; };
+		B4992AA01FD745C00053C580 /* CodableTemplate.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CodableTemplate.txt; sourceTree = "<group>"; };
+		B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = EncodableDecodableTemplate.txt; sourceTree = "<group>"; };
 		C667011A1BDCABCE009BA254 /* SwiftyJSONTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwiftyJSONTemplate.txt; sourceTree = "<group>"; };
 		C667011C1BDCAF23009BA254 /* ObjectMapperTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ObjectMapperTemplate.txt; sourceTree = "<group>"; };
 		C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSCodingTemplate.txt; sourceTree = "<group>"; };
@@ -268,6 +274,7 @@
 				93F5F2141D344CCC00FEB9C9 /* Library-Extension-Templates */,
 				9341A14E1BD6E7290048CE2C /* BaseTemplate.txt */,
 				C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */,
+				B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -313,7 +320,6 @@
 		934F09DA1E12D36700D983FF /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				9362D3BC1BD8398A00B927D6 /* External-Libraries */,
 				93A1264E1BDB8B04002A3B11 /* Generators */,
 				93F159341CFF837000175636 /* Helpers */,
 				93CC54171D01012D00B82ED5 /* Library-Extensions */,
@@ -328,7 +334,8 @@
 			children = (
 				937245521E12ED4A005387E8 /* SwiftyJSON.swift */,
 			);
-			path = "External-Libraries";
+			name = "External-Libraries";
+			path = "../External-Libraries";
 			sourceTree = "<group>";
 		};
 		937245271E12E6DE005387E8 /* External-Libraries */ = {
@@ -358,6 +365,7 @@
 		93A1264E1BDB8B04002A3B11 /* Generators */ = {
 			isa = PBXGroup;
 			children = (
+				9362D3BC1BD8398A00B927D6 /* External-Libraries */,
 				9341A1491BD6E5FE0048CE2C /* ModelGenerator.swift */,
 				934E61981E0EA20000B7601B /* MultipleModelGenerator.swift */,
 				93F159391CFF853C00175636 /* NameGenerator.swift */,
@@ -381,6 +389,7 @@
 				9327F2871DF4BCA70002BE40 /* MarshalModelFile.swift */,
 				93F1593F1CFF96E700175636 /* ObjectMapperModelFile.swift */,
 				93F1593D1CFF969900175636 /* SwiftyJSONModelFile.swift */,
+				B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */,
 			);
 			path = "Library-Extensions";
 			sourceTree = "<group>";
@@ -461,6 +470,7 @@
 				9327F2891DF4BD540002BE40 /* MarshalTemplate.txt */,
 				C667011C1BDCAF23009BA254 /* ObjectMapperTemplate.txt */,
 				C667011A1BDCABCE009BA254 /* SwiftyJSONTemplate.txt */,
+				B4992AA01FD745C00053C580 /* CodableTemplate.txt */,
 			);
 			path = "Library-Extension-Templates";
 			sourceTree = "<group>";
@@ -491,7 +501,6 @@
 				93F1743B1BD0707D007E7DFC /* Sources */,
 				93F1743C1BD0707D007E7DFC /* Frameworks */,
 				93F1743D1BD0707D007E7DFC /* Resources */,
-				930462B91D311F9100FE61A6 /* SwiftLint */,
 			);
 			buildRules = (
 			);
@@ -537,7 +546,7 @@
 					};
 					93F1743E1BD0707D007E7DFC = {
 						CreatedOnToolsVersion = 7.0.1;
-						DevelopmentTeam = UYGU8PDBPS;
+						DevelopmentTeam = S97SEFXUPK;
 						LastSwiftMigration = 0800;
 						ProvisioningStyle = Automatic;
 					};
@@ -578,9 +587,11 @@
 				C667011B1BDCABCE009BA254 /* SwiftyJSONTemplate.txt in Resources */,
 				C667011F1BDCBE1F009BA254 /* NSCodingTemplate.txt in Resources */,
 				93F174471BD0707D007E7DFC /* Assets.xcassets in Resources */,
+				B4992AA31FD74B290053C580 /* EncodableDecodableTemplate.txt in Resources */,
 				C667011D1BDCAF23009BA254 /* ObjectMapperTemplate.txt in Resources */,
 				9341A14F1BD6E7290048CE2C /* BaseTemplate.txt in Resources */,
 				9327F28A1DF4BD540002BE40 /* MarshalTemplate.txt in Resources */,
+				B4992AA11FD745C00053C580 /* CodableTemplate.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -603,23 +614,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		930462B91D311F9100FE61A6 /* SwiftLint */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = SwiftLint;
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n    swiftlint\nelse\n    echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		933CF38F1E11699600F9C412 /* Sources */ = {
@@ -691,6 +685,7 @@
 				93F174431BD0707D007E7DFC /* AppDelegate.swift in Sources */,
 				93E91B0D1CFF2DFF00ECA2A6 /* Constants.swift in Sources */,
 				93F159381CFF842D00175636 /* JSON+Helpers.swift in Sources */,
+				B40CC4101FD66D3800E235FB /* CodableModelFile.swift in Sources */,
 				93F159401CFF96E700175636 /* ObjectMapperModelFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -867,7 +862,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = UYGU8PDBPS;
+				DEVELOPMENT_TEAM = S97SEFXUPK;
 				INFOPLIST_FILE = SwiftyJSONAccelerator/Support/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
@@ -884,7 +879,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = UYGU8PDBPS;
+				DEVELOPMENT_TEAM = S97SEFXUPK;
 				INFOPLIST_FILE = SwiftyJSONAccelerator/Support/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;

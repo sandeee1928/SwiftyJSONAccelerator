@@ -27,7 +27,7 @@ struct NameGenerator {
     -> String {
 
       // If it is not a top level object, it is already formatted (since it is a property)
-      var formattedClassName = isTopLevelObject ? fixVariableName(className) : className
+      var formattedClassName = fixVariableName(className)
       formattedClassName.uppercaseFirst()
       formattedClassName.appendPrefix(prefix)
       return formattedClassName

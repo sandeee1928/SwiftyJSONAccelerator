@@ -25,6 +25,10 @@ internal struct ModelComponent {
   var decoders: [String]
   /// Description printer for each of the properties.
   var description: [String]
+  /// Init parameters for each of the properties.
+  var initParameters: [String]
+  /// Super Init parameters for each of the properties.
+  var superInitParameters: [String]
 
   /**
    Initialise a blank model component structure.
@@ -36,5 +40,7 @@ internal struct ModelComponent {
     encoders = []
     decoders = []
     description = []
+    initParameters = []
+    superInitParameters = []
   }
 }

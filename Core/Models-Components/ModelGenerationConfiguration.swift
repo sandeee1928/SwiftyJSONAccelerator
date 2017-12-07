@@ -32,7 +32,11 @@ struct ModelGenerationConfiguration {
     var isFinalRequired: Bool
     /// Should header be included.
     var isHeaderIncluded: Bool
-
+    /// json type to be used
+    var jsonType: JsonType
+    /// path of json file
+    var jsonFileURL: URL?
+    
     /// Checks if the configuration is valid as per the rules of Swift.
     ///
     /// - Returns: If the config is valid and the reason for invalidation if it is invalid.
@@ -43,6 +47,10 @@ struct ModelGenerationConfiguration {
         return (true, "")
     }
 
+    mutating func updateJsonFileURL(url: URL) {
+        jsonFileURL = url
+    }
+    
     mutating func defaultConfig() {
         isHeaderIncluded = true
         isFinalRequired = true
@@ -52,6 +60,7 @@ struct ModelGenerationConfiguration {
         prefix = ""
         filePath = ""
         baseClassName = ""
+        jsonType = .json
     }
 
 }

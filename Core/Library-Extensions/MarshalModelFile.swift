@@ -9,6 +9,8 @@
 import Foundation
 
 struct MarshalModelFile: ModelFile, DefaultModelFileComponent {
+    var superClassName: String?
+    
 
     /// Filename for the model.
     var fileName: String
@@ -44,7 +46,6 @@ struct MarshalModelFile: ModelFile, DefaultModelFileComponent {
 
     mutating func generateAndAddComponentsFor(_ property: PropertyComponent) {
         switch property.propertyType {
-
         case .ValueType:
             component.declarations.append(genVariableDeclaration(property.name, property.type, false))
             component.description.append(genDescriptionForPrimitive(property.name, property.type, property.constantName))

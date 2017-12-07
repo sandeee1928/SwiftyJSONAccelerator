@@ -85,8 +85,8 @@ struct MultipleModelGenerator {
             let fileName = url.lastPathComponent.replacingOccurrences(of: ".json", with: "")
             if let json = loadJSON(fromFile: file) {
                 finalConfiguration.baseClassName = fileName
-                let m = ModelGenerator.init(json, finalConfiguration)
-                models.append(contentsOf: m.generate())
+                var m = ModelGenerator.init(json, finalConfiguration)
+                models.append(m.generate() as! ModelFile)
             } else {
                 throw MultipleModelGeneratorError.invalidJSONFile(filename: url.lastPathComponent)
             }
@@ -166,7 +166,9 @@ struct MultipleModelGenerator {
                                                        modelMappingLibrary: jsonLibrary,
                                                        supportNSCoding: fromJSON["support_nscoding"].boolValue,
                                                        isFinalRequired: fromJSON["is_final_required"].boolValue,
-                                                       isHeaderIncluded: fromJSON["is_header_included"].boolValue)
+                                                       isHeaderIncluded: fromJSON["is_header_included"].boolValue,
+                                                       jsonType: .json,
+                                                       jsonFileURL: nil)
 
         let response = config.isConfigurationValid()
         if response.isValid {

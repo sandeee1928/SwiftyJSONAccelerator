@@ -27,6 +27,8 @@ protocol ModelFile {
 
     /// Configuration to be used for this model file's generation.
     var configuration: ModelGenerationConfiguration? { get set }
+    
+    var superClassName: String? { get set }
 
     /**
    Set the basic information for the given model file.
@@ -63,5 +65,12 @@ protocol ModelFile {
    - returns: Name of the JSON file (without extension)
    */
     func mainBodyTemplateFileName() -> String
+    
+    mutating func updateComponent(_ superInitParameters: [String])
 
+}
+
+extension ModelFile {
+    mutating func updateComponent(_ superInitParameters: [String]) {
+    }
 }

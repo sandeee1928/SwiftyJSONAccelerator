@@ -22,6 +22,10 @@ struct PropertyComponent {
   /// Nature of the property, if it is a value type, an array of a value type or an object.
   var propertyType: PropertyType
 
+    var isRequired: Bool = false
+    var description: String?
+    var referance: String?
+    
   /**
    Initialise a property component.
 
@@ -31,11 +35,14 @@ struct PropertyComponent {
    - parameter key:          Original key in the JSON file.
    - parameter propertyType: Nature of the property, if it is a value type, an array of a value type or an object.
    */
-  init(_ name: String, _ type: String, _ constantName: String, _ key: String, _ propertyType: PropertyType) {
+    init(_ name: String, _ type: String, _ constantName: String, _ key: String, _ propertyType: PropertyType, _ isRequired: Bool = false, _ description: String? = nil, _ referance: String? = nil) {
     self.name = name
     self.type = type
     self.constantName = constantName
     self.key = key
     self.propertyType = propertyType
+    self.isRequired = isRequired
+    self.description = description
+    self.referance = referance
   }
 }

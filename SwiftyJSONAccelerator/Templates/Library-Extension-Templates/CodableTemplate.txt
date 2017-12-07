@@ -1,0 +1,8 @@
+
+    /// Initiates the instance based on the JSON that was passed.
+    ///
+    /// - parameter json: JSON object from SwiftyJSON.
+    init({INIT_PARAMETERS}) {
+    {INITIALIZER}
+    {SUPER_INIT_CALL}
+    }
