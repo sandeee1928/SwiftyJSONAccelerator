@@ -46,6 +46,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     @IBOutlet var modelTypeSelectorSegment: NSSegmentedControl!
     @IBOutlet var jsonTypeSelectorSegment: NSSegmentedControl!
     var jsonFilePath: URL?
+    var destinationFilePathUrl: URL?
     
     @IBOutlet weak var mappingCheckbox: NSButton!
     // MARK: View methods
@@ -56,13 +57,21 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         textView!.lnv_setUpLineNumberView()
         resetErrorImage()
         authorNameTextField?.stringValue = NSFullUserName()
-        jsonTypeSelectorSegment.selectedSegment = 0
+        jsonTypeSelectorSegment.selectedSegment = 1
+        companyNameTextField.stringValue = "2017 T-Mobile"
+        setAsFinalCheckbox.state = 0
     }
 
     // MARK: Actions
     @IBAction func format(_ sender: AnyObject?) {
         let fileUrl = self.jsonFilePath
-        var status = false
+        var generatedFiles = [String]()
+        
+        guard let destinationPathUrl = openFile() else { return }
+        destinationFilePathUrl = destinationPathUrl
+        
+        let destinationPath = destinationPathUrl.deletingLastPathComponent().path + "/TMOAnalytics/SchemaModels"
+        
         if validateAndFormat(true) {
             let object: AnyObject? = JSONHelper.convertToObject(textView?.string).1
             if mappingCheckbox.state == 1 {
@@ -76,7 +85,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                                 if eventType.contains("analytics") {
                                     if let dirPath = fileUrl?.deletingLastPathComponent() {
                                         let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
-                                        status = generateModel(at: filePath) ?? false
+                                        generatedFiles += generateModel(at: filePath, destinationPath: destinationPath)
                                     }
                                 }
                             }
@@ -84,16 +93,20 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                     }
                 }
             } else {
-                status = (generateModel() ?? false)
+                generatedFiles = generateModel(destinationPath: destinationPath)
             }
-            notify(fileCount: 0)
+            let generatedFileSet = Set(generatedFiles.map { "\(destinationPath)/\($0).swift" })
+            if destinationPathUrl.lastPathComponent.contains(".xcodeproj") {
+                FileGenerator.addFileToXcodeProject(at: destinationPathUrl, files: Array(generatedFileSet))
+            }
+            notify(fileCount: Array(generatedFileSet).count)
         }
     }
 
     @IBAction func handleMultipleFiles(_ sender: AnyObject?) {
         let folderPath = openFile()
         // No file path was selected, go back!
-        guard let path = folderPath else { return }
+        guard let path = folderPath?.path else { return }
 
         do {
             let generatedModelInfo = try MultipleModelGenerator.generate(forPath: path)
@@ -126,7 +139,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
    */
     func validateAndFormat(_ pretty: Bool) -> Bool {
 
-        if textView?.string?.characters.count == 0 {
+        if textView?.string?.count == 0 {
             return false
         }
 
@@ -152,8 +165,8 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     /**
    Actual function that generates the model.
    */
-    func generateModel(at path: String? = nil) -> Bool? {
-        var status = false
+    func generateModel(at path: String? = nil, destinationPath: String) -> [String] {
+        var generatedFiles = [String]()
         var currentProcessingFilePathUrl: URL!
         // The base class field is blank, cannot proceed without it.
         // Possibly can have a default value in the future.
@@ -161,7 +174,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
             let alert = NSAlert()
             alert.messageText = "Enter a base class name to continue."
             alert.runModal()
-            return status
+            return generatedFiles
         }
         
         var object: AnyObject?
@@ -169,7 +182,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         if let path = path {
             let url = URL(fileURLWithPath: path)
             guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
-                return status
+                return generatedFiles
             }
             currentProcessingFilePathUrl = url
             object = JSONHelper.convertToObject(jsonString).1
@@ -177,14 +190,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
             object = JSONHelper.convertToObject(textView?.string).1
         }
     
-        let filePath = "/Users/prokarma/Documents/JSONSchema/Config/SwiftyJson/New_temp" //openFile()
-
-        // No file path was selected, go back!
-        if filePath == nil {
-            return status
-        }
-
-        
+        let filePath = destinationPath
 
         // Checks for validity of the content, else can cause crashes.
         if object != nil {
@@ -220,6 +226,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                 let path = configuration.filePath
                 do {
                     try FileGenerator.writeToFileWith(name, content: content, path: path)
+                    generatedFiles.append(name)
                 } catch let error as NSError {
                     let alert: NSAlert = NSAlert()
                     alert.messageText = "Unable to generate the files, please check the contents of the folder."
@@ -233,13 +240,12 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                 return filename
             })
             FileGenerator.indent(files: files, at: configuration.filePath)
-            status = true
         } else {
             let alert: NSAlert = NSAlert()
             alert.messageText = "Unable to save the file check the content."
             alert.runModal()
         }
-        return status
+        return generatedFiles
     }
 
     func libraryForIndex(_ index: Int) -> JSONMappingLibrary {
@@ -404,13 +410,13 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
 
    - returns: Return a valid path or nil.
    */
-    func openFile() -> String? {
+    func openFile() -> URL? {
         let fileDialog = NSOpenPanel()
-        fileDialog.canChooseFiles = false
+        fileDialog.canChooseFiles = true
         fileDialog.canChooseDirectories = true
         fileDialog.canCreateDirectories = true
         if fileDialog.runModal() == NSModalResponseOK {
-            return fileDialog.url?.path
+            return fileDialog.url
         }
         return nil
     }

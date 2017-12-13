@@ -1,17 +1,14 @@
     // MARK: Codable Protocol
-
-
-    private enum CodingKeys: String, CodingKey {
-        {STRING_CONSTANT}
-    }
+    {CODING_KEYS_ENUM}
 
     required public init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
+        {DECODERS_VALUE}
         {DECODERS}
         {DECODERS_SUPER_INIT_CALL}
     }
 
-    public{OVERRIDE}func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+    public{ENCODE_OVERRIDE}func encode(to encoder: Encoder) throws {
+        {ENCODERS_SUPER_INIT_CALL}
+        {ENCODERS_CONTAINER}
         {ENCODERS}
     }

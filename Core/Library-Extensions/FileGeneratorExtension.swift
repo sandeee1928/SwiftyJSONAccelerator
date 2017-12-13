@@ -13,16 +13,22 @@ extension FileGenerator {
     static func generateFileContentWith(_ modelFile: ModelFile, configuration: ModelGenerationConfiguration) -> String {
 
         var content = loadFileWith("BaseTemplate")
-        let singleTab = "  ", doubleTab = "    "
+        let doubleTab = "    "
         content = content.replacingOccurrences(of: "{OBJECT_NAME}", with: modelFile.fileName)
         content = content.replacingOccurrences(of: "{DATE}", with: todayDateString())
         content = content.replacingOccurrences(of: "{OBJECT_KIND}", with: modelFile.type.rawValue)
         
-        if modelFile.component.declarations.count > 0 {
+        if modelFile.component.superInitParameters.count + modelFile.component.declarations.count > 0 {
             content = content.replacingOccurrences(of: "{JSON_PARSER_LIBRARY_BODY}", with: loadFileWith(modelFile.mainBodyTemplateFileName()))
+            if modelFile.component.superInitParameters.count > 0 && modelFile.component.initParameters.count == 0 {
+                content = content.replacingOccurrences(of: "{INIT_OVERRIDE}", with: "override ")
+            } else {
+                content = content.replacingOccurrences(of: "{INIT_OVERRIDE}", with: "")
+            }
         } else {
             content = content.replacingOccurrences(of: "{JSON_PARSER_LIBRARY_BODY}", with: "")
         }
+        
         
 
         if modelFile.type == .ClassType {
@@ -46,7 +52,7 @@ extension FileGenerator {
         if let extendFrom = modelFile.baseElementName() {
             classesExtendFrom = [extendFrom]
         } else if configuration.jsonType == .jsonSchema {
-            classesExtendFrom = classesExtendFrom + ["Codable"]
+            classesExtendFrom = classesExtendFrom + ["NSObject", "Codable"]
         }
         
         if configuration.supportNSCoding && configuration.constructType == .ClassType && configuration.jsonType == .json {
@@ -103,26 +109,52 @@ extension FileGenerator {
             content = content.replacingOccurrences(of: " convenience", with: "")
         }
 
-        if configuration.supportNSCoding && configuration.constructType == .ClassType && modelFile.component.declarations.count > 0 {
+        if configuration.supportNSCoding &&
+            configuration.constructType == .ClassType &&
+            (modelFile.component.declarations.count + modelFile.component.superInitParameters.count) > 0 {
+            
             let codingTemplate = (configuration.jsonType == .json) ? "NSCodingTemplate" : "EncodableDecodableTemplate"
             content = content.replacingOccurrences(of: "{NSCODING_SUPPORT}", with: loadFileWith(codingTemplate))
             let encoders = modelFile.component.encoders.map({ doubleTab + $0 }).joined(separator: "\n")
             let decoders = modelFile.component.decoders.map({ doubleTab + $0 }).joined(separator: "\n")
             content = content.replacingOccurrences(of: "{DECODERS}", with: decoders)
             content = content.replacingOccurrences(of: "{ENCODERS}", with: encoders)
-    
+            
             let overrideValue = (modelFile.baseElementName() == nil) ? " " : " override "
-            content = content.replacingOccurrences(of: "{OVERRIDE}", with: overrideValue)
-            let superInit = (modelFile.baseElementName() == nil) ? "" : """
+            content = content.replacingOccurrences(of: "{ENCODE_OVERRIDE}", with: overrideValue)
+            let superInitDecode = (modelFile.baseElementName() == nil) ? "" : """
             do {
-                try super.init(from: decoder)
+            try super.init(from: decoder)
             }
             """
-            content = content.replacingOccurrences(of: "{DECODERS_SUPER_INIT_CALL}", with: superInit)
+            let superInitEncode = (modelFile.baseElementName() == nil) ? "" : "try super.encode(to: encoder)"
             
-            let sortedStringConstants = modelFile.component.stringConstants.sorted { return $0 < $1 }
-            let stringConstants = sortedStringConstants.map({ doubleTab + $0 }).joined(separator: "\n\(doubleTab)")
-            content = content.replacingOccurrences(of: "{STRING_CONSTANT}", with: stringConstants)
+            content = content.replacingOccurrences(of: "{DECODERS_SUPER_INIT_CALL}", with: superInitDecode)
+            content = content.replacingOccurrences(of: "{ENCODERS_SUPER_INIT_CALL}", with: superInitEncode)
+            
+            if modelFile.component.stringConstants.count > 0 {
+                let sortedStringConstants = modelFile.component.stringConstants.sorted { return $0 < $1 }
+                let stringConstants = sortedStringConstants.map({ doubleTab + $0 }).joined(separator: "\n\(doubleTab)")
+                let codingKeysEnum = """
+                private enum CodingKeys: String, CodingKey {
+                \(stringConstants)
+                }
+                """
+                content = content.replacingOccurrences(of: "{CODING_KEYS_ENUM}", with: codingKeysEnum)
+            } else {
+                content = content.replacingOccurrences(of: "{CODING_KEYS_ENUM}", with: "")
+            }
+            
+            if modelFile.component.declarations.count == 0 {
+                content = content.replacingOccurrences(of: "{DECODERS_VALUE}", with: "")
+                content = content.replacingOccurrences(of: "{ENCODERS_CONTAINER}", with: "")
+            } else {
+                content = content.replacingOccurrences(of: "{DECODERS_VALUE}",
+                                                       with: "let values = try decoder.container(keyedBy: CodingKeys.self)")
+                content = content.replacingOccurrences(of: "{ENCODERS_CONTAINER}",
+                                                       with: "var container = encoder.container(keyedBy: CodingKeys.self)")
+            }
+            
         } else {
             content = content.replacingOccurrences(of: "{NSCODING_SUPPORT}", with: "")
         }
@@ -162,6 +194,31 @@ extension FileGenerator {
             buildTask.launchPath = launchPath
             buildTask.arguments = files
             buildTask.currentDirectoryPath = directoryPath
+            buildTask.terminationHandler = { task in
+                DispatchQueue.main.async(execute: {
+                    if let completionHandler = completionHandler {
+                        completionHandler(true)
+                    }
+                })
+            }
+            buildTask.launch()
+            buildTask.waitUntilExit()
+        }
+    }
+    
+    static func addFileToXcodeProject(at pathUrl: URL, files: [String], completionHandler:( (Bool) -> Void )? = nil) {
+        let taskQueue = DispatchQueue.global(qos: DispatchQoS.QoSClass.background)
+        taskQueue.async {
+            
+            guard let path = Bundle.main.path(forResource: "AddFile",ofType:"rb") else {
+                print("Unable to locate BuildScript.command")
+                return
+            }
+    
+            let buildTask = Process()
+            buildTask.launchPath = path
+            buildTask.arguments = [pathUrl.path] + files
+            buildTask.currentDirectoryPath = pathUrl.path
             buildTask.terminationHandler = { task in
                 DispatchQueue.main.async(execute: {
                     if let completionHandler = completionHandler {
