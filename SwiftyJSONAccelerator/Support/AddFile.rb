@@ -32,8 +32,10 @@ new_group = project.main_group.find_subpath(File.join(main_target.name, 'Public/
 puts "new group #{new_group}"
 new_group.files.each do |f|
     new_group.children.delete(f)
-    f.remove_from_project
+    build_phase = main_target.source_build_phase
+    build_phase.remove_file_reference(f)
 end
+
 the_rest.each do|a|
     addfiles("#{a}", new_group, main_target)
 end
