@@ -69,9 +69,8 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         
         guard let destinationPathUrl = openFile() else { return }
         destinationFilePathUrl = destinationPathUrl
-        
-        let destinationPath = destinationPathUrl.deletingLastPathComponent().path + "/TMOAnalytics/SchemaModels"
-        
+        let destinationPath = getDestinationPath(form: destinationPathUrl)
+        FileGenerator.deleteOldFiles(at: destinationPath)
         if validateAndFormat(true) {
             let object: AnyObject? = JSONHelper.convertToObject(textView?.string).1
             if mappingCheckbox.state == 1 {
@@ -93,13 +92,29 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                     }
                 }
             } else {
-                generatedFiles = generateModel(destinationPath: destinationPath)
+                if let filePath = fileUrl?.relativePath {
+                    generatedFiles = generateModel(at: filePath, destinationPath: destinationPath)
+                } else {
+                    generatedFiles = generateModel(destinationPath: destinationPath)
+                }
             }
             let generatedFileSet = Set(generatedFiles.map { "\(destinationPath)/\($0).swift" })
             if destinationPathUrl.lastPathComponent.contains(".xcodeproj") {
                 FileGenerator.addFileToXcodeProject(at: destinationPathUrl, files: Array(generatedFileSet))
             }
+            for file in Array(generatedFileSet) {
+                print(file)
+            }
             notify(fileCount: Array(generatedFileSet).count)
+        }
+    }
+    
+    private func getDestinationPath(form pathUrl: URL) -> String {
+        if pathUrl.lastPathComponent.contains(".xcodeproj") {
+            let actualPath = pathUrl.deletingLastPathComponent()
+            return "\(actualPath.path)/\(actualPath.lastPathComponent)/Public/SchemaModels/D3Schema"
+        } else {
+            return "\(pathUrl.path)/Public/SchemaModels/D3Schema"
         }
     }
 
@@ -270,6 +285,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                     guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
                             return
                     }
+                    FileGenerator.executeGitCommand(command: "git pull", at: url.deletingLastPathComponent())
                     self.jsonFilePath = url
                     self.textView.string = jsonString
                 }

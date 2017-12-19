@@ -50,6 +50,7 @@ enum VariableType: String {
 enum ConstructType: String {
   case ClassType = "class"
   case StructType = "struct"
+  case Enum = "enum"
 }
 
 /**

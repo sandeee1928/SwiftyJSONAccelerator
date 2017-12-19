@@ -230,4 +230,35 @@ extension FileGenerator {
             buildTask.waitUntilExit()
         }
     }
+    
+    static func executeGitCommand(command: String, at pathUrl: URL) {
+        let taskQueue = DispatchQueue.global(qos: DispatchQoS.QoSClass.background)
+        taskQueue.sync {
+
+            let buildTask = Process()
+            buildTask.launchPath = "/usr/bin/env"
+            buildTask.arguments = command.components(separatedBy: " ")
+            buildTask.currentDirectoryPath = pathUrl.path
+            buildTask.terminationHandler = { _ in
+            }
+            buildTask.launch()
+            buildTask.waitUntilExit()
+        }
+    }
+    
+    static func deleteOldFiles(at path: String) {
+        let taskQueue = DispatchQueue.global(qos: DispatchQoS.QoSClass.background)
+        taskQueue.sync {
+            
+            let buildTask = Process()
+            buildTask.launchPath = "/usr/bin/env"
+            buildTask.arguments = ["rm", "-rf", "--", path]
+//            buildTask.currentDirectoryPath = path
+            buildTask.terminationHandler = { _ in
+            }
+            buildTask.launch()
+            buildTask.waitUntilExit()
+        }
+    }
+    
 }

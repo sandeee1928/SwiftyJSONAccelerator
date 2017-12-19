@@ -140,7 +140,7 @@ public struct ModelGenerator {
             if let extends = rootObject["extends"]?["$ref"].string, let extendsJSON = getJSON(fromFile: extends) {
                 let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
                 modelFiles = modelFiles + models
-                if let model = models.first {
+                if let model = models.last {
                     currentModel.superClassName = model.fileName
                     superInitPrams += (model.component.initParameters + model.component.superInitParameters)
                 }
@@ -161,19 +161,33 @@ public struct ModelGenerator {
                     } else if let ref = value["$ref"].string, let extendsJSON = getJSON(fromFile: ref) {
                         let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
                         modelFiles = modelFiles + models
-                        if let model = models.first {
+                        if let model = models.last {
                             objectName = model.fileName
                         }
                         configuration.jsonFileURL = filePathUrl
                     }
 
-                    
                     let variableType = getDetailedValueType(dataType)
                     let isRequired = value["required"].bool ?? false
                     let propertyType: PropertyType = (variableType == .Object) ? .ObjectType : .ValueType
                     
-                    let type = (propertyType == .ObjectType) ? objectName : variableType.rawValue
-                    
+                    var type = variableType.rawValue
+                    switch variableType {
+                    case .Array:
+                        if let items = value["items"].dictionary {
+                            if let ref = items["$ref"]?.string, let extendsJSON = getJSON(fromFile: ref) {
+                                let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+                                modelFiles = modelFiles + models
+                                if let model = models.last {
+                                    type = "[\(model.fileName)]"
+                                }
+                            }
+                        }
+                    case .Object:
+                        type = objectName
+                    default:
+                        type = variableType.rawValue
+                    }
                     let propertyComponent = PropertyComponent(variableName, type,
                                                           "",
                                                           key,
@@ -183,9 +197,9 @@ public struct ModelGenerator {
                                                           value["$ref"].string)
                     currentModel.generateAndAddComponentsFor(propertyComponent)
                 }
-                currentModel.updateComponent(superInitPrams)
-                modelFiles = [currentModel] + modelFiles
             }
+            currentModel.updateComponent(superInitPrams)
+            modelFiles += [currentModel]
         }
         return modelFiles
     }
@@ -198,18 +212,20 @@ public struct ModelGenerator {
             return VariableType.Bool
         case "int", "long":
             return VariableType.Int
-        case "double":
+        case "double", "number":
             return VariableType.Double
         case "float":
             return VariableType.Float
+        case "array":
+            return VariableType.Array
         default:
             return VariableType.Object
         }
     }
     
     mutating func getJSON(fromFile: String) -> JSON? {
-        
-        let paths = fromFile.components(separatedBy: "/")
+        let updateFilePath = fromFile.replacingOccurrences(of: "classpath:", with: "../../../../../../events-core-schemas/src/main/resources")
+        let paths = updateFilePath.components(separatedBy: "/")
         let sss = paths.filter { (strig) -> Bool in
             return strig == ".."
         }
