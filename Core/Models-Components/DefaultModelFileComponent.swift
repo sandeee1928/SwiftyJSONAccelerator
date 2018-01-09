@@ -111,6 +111,9 @@ protocol DefaultModelFileComponent {
    - returns:  Generated instance of the string for decoder.
    */
   func genDecoder(_ name: String, _ type: String, _ constantName: String, _ isArray: Bool) -> String
+    
+  func formatDescriotion(_ description: String) -> String
+    
 }
 
 extension DefaultModelFileComponent {
@@ -168,5 +171,23 @@ extension DefaultModelFileComponent {
     }
     return "self.\(name) = aDecoder.decodeObject(forKey: \(constantName)) as? \(finalTypeName)"
   }
+    
+    func formatDescriotion(_ description: String) -> String {
+        let words = description.components(separatedBy: " ")
+        var result = "/// "
+        var multiplyer = 1
+        for word in words {
+            let formatedWord = word.trimmingCharacters(in: .whitespacesAndNewlines)
+            if formatedWord.isEmpty {
+                continue
+            }
+            if (result.count + word.count + 1) > 115 * multiplyer {
+                result += "\n/// "
+                multiplyer += 1
+            }
+            result += "\(formatedWord) "
+        }
+        return result
+    }
 
 }

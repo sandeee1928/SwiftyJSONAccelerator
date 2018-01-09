@@ -9,6 +9,8 @@
 import Foundation
 
 struct ObjectMapperModelFile: ModelFile, DefaultModelFileComponent {
+    var description: String?
+    
     var superClassName: String?
     
 

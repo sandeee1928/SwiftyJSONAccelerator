@@ -9,6 +9,8 @@
 import Foundation
 
 struct MarshalModelFile: ModelFile, DefaultModelFileComponent {
+    var description: String?
+    
     var superClassName: String?
     
 

@@ -9,7 +9,7 @@
 import Foundation
 
 struct CodableModelFile: ModelFile {
-    
+    var description: String?
     var fileName: String
     var type: ConstructType
     var component: ModelComponent
@@ -110,23 +110,9 @@ extension CodableModelFile: DefaultModelFileComponent {
         let optionalString = isRequired ? "" : "?"
         var variable = "public var \(name): \(type)\(optionalString)"
         if let description = description {
-            variable = "\(formatDescriotion("///\(description)"))\n" + variable
+            variable = "\(formatDescriotion("\(description)"))\n" + variable
         }
         return variable
-    }
-    
-    func formatDescriotion(_ description: String) -> String {
-        let words = description.components(separatedBy: " ")
-        var result = ""
-        var multiplyer = 1
-        for word in words {
-            result += "\(word) "
-            if result.count > 110 * multiplyer {
-                result += "\n///"
-                multiplyer += 1
-            }
-        }
-        return result
     }
     
     func genInitParameters(_ name: String, _ type: String, _ isRequired: Bool) -> String {

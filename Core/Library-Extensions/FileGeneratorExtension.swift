@@ -17,6 +17,12 @@ extension FileGenerator {
         content = content.replacingOccurrences(of: "{OBJECT_NAME}", with: modelFile.fileName)
         content = content.replacingOccurrences(of: "{DATE}", with: todayDateString())
         content = content.replacingOccurrences(of: "{OBJECT_KIND}", with: modelFile.type.rawValue)
+        if let codableFile = modelFile as? CodableModelFile, let classDescription = modelFile.description {
+            content = content.replacingOccurrences(of: "{CLASS_DESCRIPTION}",
+                                                   with: codableFile.formatDescriotion(classDescription))
+        } else {
+            content = content.replacingOccurrences(of: "{CLASS_DESCRIPTION}", with: "")
+        }
         
         if modelFile.component.superInitParameters.count + modelFile.component.declarations.count > 0 {
             content = content.replacingOccurrences(of: "{JSON_PARSER_LIBRARY_BODY}", with: loadFileWith(modelFile.mainBodyTemplateFileName()))
@@ -28,8 +34,6 @@ extension FileGenerator {
         } else {
             content = content.replacingOccurrences(of: "{JSON_PARSER_LIBRARY_BODY}", with: "")
         }
-        
-        
 
         if modelFile.type == .ClassType {
             content = content.replacingOccurrences(of: "{REQUIRED}", with: " required ")

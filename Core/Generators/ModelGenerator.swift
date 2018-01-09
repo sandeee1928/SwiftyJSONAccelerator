@@ -134,7 +134,7 @@ public struct ModelGenerator {
             var currentModel = self.initialiseModelFileFor(configuration.modelMappingLibrary)
             currentModel.setInfo(className, configuration)
             currentModel.sourceJSON = object
-            
+            currentModel.description = rootObject["description"]?.string
             var superInitPrams = [String]()
             
             if let extends = rootObject["extends"]?["$ref"].string, let extendsJSON = getJSON(fromFile: extends) {
@@ -210,7 +210,7 @@ public struct ModelGenerator {
             return VariableType.String
         case "boolean", "bool":
             return VariableType.Bool
-        case "int", "long":
+        case "int", "long", "integer":
             return VariableType.Int
         case "double", "number":
             return VariableType.Double
@@ -224,14 +224,15 @@ public struct ModelGenerator {
     }
     
     mutating func getJSON(fromFile: String) -> JSON? {
-        let updateFilePath = fromFile.replacingOccurrences(of: "classpath:", with: "../../../../../../events-core-schemas/src/main/resources")
+        var updateFilePath = fromFile.replacingOccurrences(of: "classpath:",
+                                                           with: "../../../../../../events-core-schemas/src/main/resources")
+        updateFilePath = updateFilePath.replacingOccurrences(of: "/Users/mhanson5/schemasInvestigation/d3_schemas/output/schemas/collector/event/software-info.json",
+                                                             with: "../../../../collector/event/software-info.json")
         let paths = updateFilePath.components(separatedBy: "/")
         let sss = paths.filter { (strig) -> Bool in
             return strig == ".."
         }
         guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else { return nil }
-        
-//        var newPath = currentPath?.removeLast()
         for _ in 0...sss.count {
             currentPath.removeLast()
         }

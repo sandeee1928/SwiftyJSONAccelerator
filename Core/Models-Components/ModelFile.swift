@@ -29,6 +29,8 @@ protocol ModelFile {
     var configuration: ModelGenerationConfiguration? { get set }
     
     var superClassName: String? { get set }
+    
+    var description: String? { get set }
 
     /**
    Set the basic information for the given model file.

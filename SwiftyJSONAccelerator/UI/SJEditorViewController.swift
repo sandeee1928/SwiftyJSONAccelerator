@@ -81,7 +81,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                     if let mappingList = tempJson["event_type_mapping"].array {
                         for mapping in mappingList {
                             if let schemaPath = mapping["schema_path"].string, let eventType = mapping["event_type"].string {
-                                if eventType.contains("analytics") {
+                                if eventType.contains("analytics") || eventType.contains("observability.zipkin") {
                                     if let dirPath = fileUrl?.deletingLastPathComponent() {
                                         let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
                                         generatedFiles += generateModel(at: filePath, destinationPath: destinationPath)
