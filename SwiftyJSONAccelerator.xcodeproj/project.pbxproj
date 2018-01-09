@@ -109,6 +109,7 @@
 		93F174471BD0707D007E7DFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 93F174461BD0707D007E7DFC /* Assets.xcassets */; };
 		93F174601BD070AA007E7DFC /* JSONHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F1745F1BD070AA007E7DFC /* JSONHelper.swift */; };
 		B40CC4101FD66D3800E235FB /* CodableModelFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */; };
+		B4310CDB1FE9A20600D670CE /* CodableModelFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */; };
 		B432E7E71FDB571900218E53 /* AddFile.rb in Resources */ = {isa = PBXBuildFile; fileRef = B432E7E61FDB571900218E53 /* AddFile.rb */; };
 		B4992AA11FD745C00053C580 /* CodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA01FD745C00053C580 /* CodableTemplate.txt */; };
 		B4992AA31FD74B290053C580 /* EncodableDecodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */; };
@@ -544,7 +545,7 @@
 				TargetAttributes = {
 					933CF3921E11699600F9C412 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = UYGU8PDBPS;
+						DevelopmentTeam = S97SEFXUPK;
 						ProvisioningStyle = Automatic;
 					};
 					93F1743E1BD0707D007E7DFC = {
@@ -638,6 +639,7 @@
 				934F09DE1E12D38900D983FF /* NameGenerator.swift in Sources */,
 				937245481E12ED36005387E8 /* HelpCommand.swift in Sources */,
 				934F09E51E12D39700D983FF /* DefaultModelFileComponent.swift in Sources */,
+				B4310CDB1FE9A20600D670CE /* CodableModelFile.swift in Sources */,
 				934F09DF1E12D38E00D983FF /* JSON+Helpers.swift in Sources */,
 				934F09F71E12DC4B00D983FF /* FileGeneratorExtension.swift in Sources */,
 				937245421E12ED36005387E8 /* Command.swift in Sources */,
@@ -744,7 +746,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
-				DEVELOPMENT_TEAM = UYGU8PDBPS;
+				DEVELOPMENT_TEAM = S97SEFXUPK;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) '@executable_path/../Frameworks' '@loader_path/Frameworks' @executable_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
@@ -759,7 +761,7 @@
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
-				DEVELOPMENT_TEAM = UYGU8PDBPS;
+				DEVELOPMENT_TEAM = S97SEFXUPK;
 				INSTALL_PATH = "@executable_path/../Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) '@executable_path/../Frameworks' '@loader_path/Frameworks' @executable_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
