@@ -112,7 +112,6 @@
 		B4310CDB1FE9A20600D670CE /* CodableModelFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */; };
 		B432E7E71FDB571900218E53 /* AddFile.rb in Resources */ = {isa = PBXBuildFile; fileRef = B432E7E61FDB571900218E53 /* AddFile.rb */; };
 		B4992AA11FD745C00053C580 /* CodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA01FD745C00053C580 /* CodableTemplate.txt */; };
-		B4992AA31FD74B290053C580 /* EncodableDecodableTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */; };
 		C667011B1BDCABCE009BA254 /* SwiftyJSONTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011A1BDCABCE009BA254 /* SwiftyJSONTemplate.txt */; };
 		C667011D1BDCAF23009BA254 /* ObjectMapperTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011C1BDCAF23009BA254 /* ObjectMapperTemplate.txt */; };
 		C667011F1BDCBE1F009BA254 /* NSCodingTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */; };
@@ -194,7 +193,6 @@
 		B40CC40F1FD66D3800E235FB /* CodableModelFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableModelFile.swift; sourceTree = "<group>"; };
 		B432E7E61FDB571900218E53 /* AddFile.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = AddFile.rb; sourceTree = "<group>"; };
 		B4992AA01FD745C00053C580 /* CodableTemplate.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CodableTemplate.txt; sourceTree = "<group>"; };
-		B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = EncodableDecodableTemplate.txt; sourceTree = "<group>"; };
 		C667011A1BDCABCE009BA254 /* SwiftyJSONTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SwiftyJSONTemplate.txt; sourceTree = "<group>"; };
 		C667011C1BDCAF23009BA254 /* ObjectMapperTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ObjectMapperTemplate.txt; sourceTree = "<group>"; };
 		C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSCodingTemplate.txt; sourceTree = "<group>"; };
@@ -278,7 +276,6 @@
 				93F5F2141D344CCC00FEB9C9 /* Library-Extension-Templates */,
 				9341A14E1BD6E7290048CE2C /* BaseTemplate.txt */,
 				C667011E1BDCBE1F009BA254 /* NSCodingTemplate.txt */,
-				B4992AA21FD74B290053C580 /* EncodableDecodableTemplate.txt */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -591,7 +588,6 @@
 				C667011B1BDCABCE009BA254 /* SwiftyJSONTemplate.txt in Resources */,
 				C667011F1BDCBE1F009BA254 /* NSCodingTemplate.txt in Resources */,
 				93F174471BD0707D007E7DFC /* Assets.xcassets in Resources */,
-				B4992AA31FD74B290053C580 /* EncodableDecodableTemplate.txt in Resources */,
 				C667011D1BDCAF23009BA254 /* ObjectMapperTemplate.txt in Resources */,
 				9341A14F1BD6E7290048CE2C /* BaseTemplate.txt in Resources */,
 				9327F28A1DF4BD540002BE40 /* MarshalTemplate.txt in Resources */,

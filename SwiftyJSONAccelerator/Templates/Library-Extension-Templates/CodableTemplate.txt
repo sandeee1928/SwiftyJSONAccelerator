@@ -1,6 +1,21 @@
-
+{DISABLE_SWIFT_LINT_FORCECAST}
     /// Initiates the instance based on the parameters
     {INIT_OVERRIDE}init({INIT_PARAMETERS}) {
-    {INITIALIZER}
-    {SUPER_INIT_CALL}
+        {INITIALIZER}
+        {SUPER_INIT_CALL}
+    }
+
+    // MARK: Codable Protocol
+    {CODABLE_CODING_KEYS_ENUM}
+
+    required public init(from decoder: Decoder) throws {
+        {CODABLE_DECODERS_VALUE}
+        {CODABLE_DECODERS}
+        {CODABLE_DECODERS_SUPER_INIT_CALL}
+    }
+
+    public{CODABLE_ENCODE_OVERRIDE}func encode(to encoder: Encoder) throws {
+        {CODABLE_ENCODERS_SUPER_INIT_CALL}
+        {CODABLE_ENCODERS_CONTAINER}
+        {CODABLE_ENCODERS}
     }

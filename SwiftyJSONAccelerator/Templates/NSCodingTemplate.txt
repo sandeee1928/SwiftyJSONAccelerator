@@ -2,8 +2,10 @@
   // MARK: NSCoding Protocol
   required public init(coder aDecoder: NSCoder) {
 {DECODERS}
+{NSCODING_DECODERS_SUPER_INIT_CALL}
   }
 
-  public func encode(with aCoder: NSCoder) {
+  public{NSCODING_ENCODE_OVERRIDE}func encode(with aCoder: NSCoder) {
 {ENCODERS}
+{NSCODING_ENCODERS_SUPER_INIT_CALL}
   }

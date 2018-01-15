@@ -51,6 +51,9 @@ struct CodableModelFile: ModelFile {
             component.initialisers.append(genInitializerForVariable(property.name))
             component.declarations.append(genVariableDeclaration(property.name, property.type, property.isRequired, property.description))
             component.initParameters.append(genInitParameters(property.name, property.type, property.isRequired))
+            component.decodersCodable.append(genCodableDecoder(property.name, property.type, property.isRequired, false))
+            component.encodersCodable.append(genCodableEncoder(property.name, property.type, property.isRequired))
+            
             component.decoders.append(genDecoder(property.name, property.type, property.isRequired, false))
             component.encoders.append(genEncoder(property.name, property.type, property.isRequired))
         case .ValueTypeArray:
@@ -58,6 +61,9 @@ struct CodableModelFile: ModelFile {
             component.initialisers.append(genInitializerForVariable(property.name))
             component.declarations.append(genVariableDeclaration(property.name, property.type, property.isRequired, property.description))
             component.initParameters.append(genInitParameters(property.name, property.type, property.isRequired))
+            component.decodersCodable.append(genCodableDecoder(property.name, property.type, property.isRequired, true))
+            component.encodersCodable.append(genCodableEncoder(property.name, property.type, property.isRequired))
+            
             component.decoders.append(genDecoder(property.name, property.type, property.isRequired, true))
             component.encoders.append(genEncoder(property.name, property.type, property.isRequired))
         case .ObjectType:
@@ -65,6 +71,9 @@ struct CodableModelFile: ModelFile {
             component.initialisers.append(genInitializerForVariable(property.name))
             component.declarations.append(genVariableDeclaration(property.name, property.type, property.isRequired, property.description))
             component.initParameters.append(genInitParameters(property.name, property.type, property.isRequired))
+            component.decodersCodable.append(genCodableDecoder(property.name, property.type, property.isRequired, false))
+            component.encodersCodable.append(genCodableEncoder(property.name, property.type, property.isRequired))
+            
             component.decoders.append(genDecoder(property.name, property.type, property.isRequired, false))
             component.encoders.append(genEncoder(property.name, property.type, property.isRequired))
         case .ObjectTypeArray:
@@ -72,6 +81,9 @@ struct CodableModelFile: ModelFile {
             component.initialisers.append(genInitializerForVariable(property.name))
             component.declarations.append(genVariableDeclaration(property.name, property.type, property.isRequired, property.description))
             component.initParameters.append(genInitParameters(property.name, property.type, property.isRequired))
+            component.decodersCodable.append(genCodableDecoder(property.name, property.type, property.isRequired, true))
+            component.encodersCodable.append(genCodableEncoder(property.name, property.type, property.isRequired))
+            
             component.decoders.append(genDecoder(property.name, property.type, property.isRequired, true))
             component.encoders.append(genEncoder(property.name, property.type, property.isRequired))
         case .EmptyArray:
@@ -79,8 +91,11 @@ struct CodableModelFile: ModelFile {
             component.initialisers.append(genInitializerForVariable(property.name))
             component.declarations.append(genVariableDeclaration(property.name, "Any", property.isRequired, property.description))
             component.initParameters.append(genInitParameters(property.name, property.type, property.isRequired))
-            component.decoders.append(genDecoder(property.name, "Any", property.isRequired, true))
-            component.encoders.append(genEncoder(property.name, "Any", property.isRequired))
+            component.decodersCodable.append(genCodableDecoder(property.name, "Any", property.isRequired, true))
+            component.encodersCodable.append(genCodableEncoder(property.name, "Any", property.isRequired))
+            
+            component.decoders.append(genDecoder(property.name, property.type, property.isRequired, true))
+            component.encoders.append(genEncoder(property.name, property.type, property.isRequired))
         case .NullType:
             // Currently we do not deal with null values.
             break
@@ -123,14 +138,37 @@ extension CodableModelFile: DefaultModelFileComponent {
         }
     }
     
-    func genEncoder(_ name: String, _ type: String, _ isRequired: Bool) -> String {
+    func genCodableEncoder(_ name: String, _ type: String, _ isRequired: Bool) -> String {
         let encodeString = isRequired ? "encode" : "encodeIfPresent"
        return "try container.\(encodeString)(\(name), forKey: .\(name))"
     }
     
-    func genDecoder(_ name: String, _ type: String, _ isRequired: Bool, _ isArray: Bool) -> String {
+    func genCodableDecoder(_ name: String, _ type: String, _ isRequired: Bool, _ isArray: Bool) -> String {
         let decodeString = isRequired ? "decode" : "decodeIfPresent"
         return "\(name) = try values.\(decodeString)(\(type).self, forKey: .\(name))"
+    }
+    
+    
+    func genEncoder(_ name: String, _ type: String, _ isRequired: Bool) -> String {
+        if type == VariableType.Bool.rawValue {
+            return "aCoder.encode(\(name), forKey: CodingKeys.\(name).rawValue)"
+        }
+        return "aCoder.encode(\(name), forKey: CodingKeys.\(name).rawValue)"
+    }
+    
+    func genDecoder(_ name: String, _ type: String, _ isRequired: Bool, _ isArray: Bool) -> String {
+        let finalTypeName = isArray ? "[\(type)]" : type
+        let requiredString = isRequired ? "!" : "?"
+        if type == VariableType.Bool.rawValue {
+            return "self.\(name) = aDecoder.decodeBool(forKey: CodingKeys.\(name).rawValue) as\(requiredString) \(finalTypeName)"
+        } else if type == VariableType.Double.rawValue {
+            return "self.\(name) = aDecoder.decodeDouble(forKey: CodingKeys.\(name).rawValue) as\(requiredString) \(finalTypeName)"
+        } else if type == VariableType.Float.rawValue {
+            return "self.\(name) = aDecoder.decodeFloat(forKey: CodingKeys.\(name).rawValue) as\(requiredString) \(finalTypeName)"
+        } else if type == VariableType.Int.rawValue {
+            return "self.\(name) = aDecoder.decodeInteger(forKey: CodingKeys.\(name).rawValue) as\(requiredString) \(finalTypeName)"
+        }
+        return "self.\(name) = aDecoder.decodeObject(forKey: CodingKeys.\(name).rawValue) as\(requiredString) \(finalTypeName)"
     }
 }
 

@@ -56,7 +56,10 @@ extension FileGenerator {
         if let extendFrom = modelFile.baseElementName() {
             classesExtendFrom = [extendFrom]
         } else if configuration.jsonType == .jsonSchema {
-            classesExtendFrom = classesExtendFrom + ["NSObject", "Codable"]
+            classesExtendFrom += ["NSObject", "Codable"]
+            if configuration.supportNSCoding {
+                classesExtendFrom += ["NSCoding"]
+            }
         }
         
         if configuration.supportNSCoding && configuration.constructType == .ClassType && configuration.jsonType == .json {
@@ -88,9 +91,18 @@ extension FileGenerator {
         var sortedSuperInitParameters = modelFile.component.superInitParameters.sorted { return $0 < $1 }
         sortedSuperInitParameters.sort { return !$0.contains("?") && $1.contains("?") }
         
+        if let superClassName = modelFile.superClassName {
+            let superCall = superClassName.capitalized + ": " + superClassName
+        }
+        
         var sortedAllInitParameters = (sortedSuperInitParameters + sortedInitParameters).sorted { return $0 < $1 }
         sortedAllInitParameters.sort { return !$0.contains("?") && $1.contains("?") }
         
+        if sortedInitParameters.contains("?") {
+            content = content.replacingOccurrences(of: "{DISABLE_SWIFT_LINT_FORCECAST}", with: "// swiftlint:disable force_cast")
+        } else {
+            content = content.replacingOccurrences(of: "{DISABLE_SWIFT_LINT_FORCECAST}", with: "")
+        }
         
         let declarations = sortedDeclarations.map({ doubleTab + $0 }).joined(separator: "\n\(doubleTab)")
         let initialisers = sortedInitialisers.map({ doubleTab + $0 }).joined(separator: "\n\(doubleTab)")
@@ -112,20 +124,16 @@ extension FileGenerator {
         if configuration.constructType == .StructType {
             content = content.replacingOccurrences(of: " convenience", with: "")
         }
-
-        if configuration.supportNSCoding &&
-            configuration.constructType == .ClassType &&
+        
+        if configuration.jsonType == .jsonSchema &&
             (modelFile.component.declarations.count + modelFile.component.superInitParameters.count) > 0 {
-            
-            let codingTemplate = (configuration.jsonType == .json) ? "NSCodingTemplate" : "EncodableDecodableTemplate"
-            content = content.replacingOccurrences(of: "{NSCODING_SUPPORT}", with: loadFileWith(codingTemplate))
-            let encoders = modelFile.component.encoders.map({ doubleTab + $0 }).joined(separator: "\n")
-            let decoders = modelFile.component.decoders.map({ doubleTab + $0 }).joined(separator: "\n")
-            content = content.replacingOccurrences(of: "{DECODERS}", with: decoders)
-            content = content.replacingOccurrences(of: "{ENCODERS}", with: encoders)
+            let encoders = modelFile.component.encodersCodable.map({ doubleTab + $0 }).joined(separator: "\n")
+            let decoders = modelFile.component.decodersCodable.map({ doubleTab + $0 }).joined(separator: "\n")
+            content = content.replacingOccurrences(of: "{CODABLE_DECODERS}", with: decoders)
+            content = content.replacingOccurrences(of: "{CODABLE_ENCODERS}", with: encoders)
             
             let overrideValue = (modelFile.baseElementName() == nil) ? " " : " override "
-            content = content.replacingOccurrences(of: "{ENCODE_OVERRIDE}", with: overrideValue)
+            content = content.replacingOccurrences(of: "{CODABLE_ENCODE_OVERRIDE}", with: overrideValue)
             let superInitDecode = (modelFile.baseElementName() == nil) ? "" : """
             do {
             try super.init(from: decoder)
@@ -133,8 +141,8 @@ extension FileGenerator {
             """
             let superInitEncode = (modelFile.baseElementName() == nil) ? "" : "try super.encode(to: encoder)"
             
-            content = content.replacingOccurrences(of: "{DECODERS_SUPER_INIT_CALL}", with: superInitDecode)
-            content = content.replacingOccurrences(of: "{ENCODERS_SUPER_INIT_CALL}", with: superInitEncode)
+            content = content.replacingOccurrences(of: "{CODABLE_DECODERS_SUPER_INIT_CALL}", with: superInitDecode)
+            content = content.replacingOccurrences(of: "{CODABLE_ENCODERS_SUPER_INIT_CALL}", with: superInitEncode)
             
             if modelFile.component.stringConstants.count > 0 {
                 let sortedStringConstants = modelFile.component.stringConstants.sorted { return $0 < $1 }
@@ -144,20 +152,43 @@ extension FileGenerator {
                 \(stringConstants)
                 }
                 """
-                content = content.replacingOccurrences(of: "{CODING_KEYS_ENUM}", with: codingKeysEnum)
+                content = content.replacingOccurrences(of: "{CODABLE_CODING_KEYS_ENUM}", with: codingKeysEnum)
             } else {
-                content = content.replacingOccurrences(of: "{CODING_KEYS_ENUM}", with: "")
+                content = content.replacingOccurrences(of: "{CODABLE_CODING_KEYS_ENUM}", with: "")
             }
             
             if modelFile.component.declarations.count == 0 {
-                content = content.replacingOccurrences(of: "{DECODERS_VALUE}", with: "")
-                content = content.replacingOccurrences(of: "{ENCODERS_CONTAINER}", with: "")
+                content = content.replacingOccurrences(of: "{CODABLE_DECODERS_VALUE}", with: "")
+                content = content.replacingOccurrences(of: "{CODABLE_ENCODERS_CONTAINER}", with: "")
             } else {
-                content = content.replacingOccurrences(of: "{DECODERS_VALUE}",
+                content = content.replacingOccurrences(of: "{CODABLE_DECODERS_VALUE}",
                                                        with: "let values = try decoder.container(keyedBy: CodingKeys.self)")
-                content = content.replacingOccurrences(of: "{ENCODERS_CONTAINER}",
+                content = content.replacingOccurrences(of: "{CODABLE_ENCODERS_CONTAINER}",
                                                        with: "var container = encoder.container(keyedBy: CodingKeys.self)")
             }
+        }
+
+        if configuration.supportNSCoding &&
+            configuration.constructType == .ClassType &&
+            (modelFile.component.declarations.count + modelFile.component.superInitParameters.count) > 0 {
+            
+            content = content.replacingOccurrences(of: "{NSCODING_SUPPORT}", with: loadFileWith("NSCodingTemplate"))
+            let encoders = modelFile.component.encoders.map({ doubleTab + $0 }).joined(separator: "\n")
+            let decoders = modelFile.component.decoders.map({ doubleTab + $0 }).joined(separator: "\n")
+            content = content.replacingOccurrences(of: "{DECODERS}", with: decoders)
+            content = content.replacingOccurrences(of: "{ENCODERS}", with: encoders)
+            
+            if configuration.jsonType == .jsonSchema  {
+                let superInitDecode = (modelFile.baseElementName() == nil) ? "super.init()" : "super.init(coder: aDecoder)"
+                let superInitEncode = (modelFile.baseElementName() == nil) ? "" : "super.encode(with: aCoder)"
+                content = content.replacingOccurrences(of: "{NSCODING_DECODERS_SUPER_INIT_CALL}", with: superInitDecode)
+                content = content.replacingOccurrences(of: "{NSCODING_ENCODERS_SUPER_INIT_CALL}", with: superInitEncode)
+            } else {
+                content = content.replacingOccurrences(of: "{NSCODING_DECODERS_SUPER_INIT_CALL}", with: "")
+                content = content.replacingOccurrences(of: "{NSCODING_ENCODERS_SUPER_INIT_CALL}", with: "")
+            }
+            let overrideValue = (modelFile.baseElementName() == nil) ? " " : " override "
+            content = content.replacingOccurrences(of: "{NSCODING_ENCODE_OVERRIDE}", with: overrideValue)
             
         } else {
             content = content.replacingOccurrences(of: "{NSCODING_SUPPORT}", with: "")

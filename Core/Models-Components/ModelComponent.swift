@@ -29,6 +29,10 @@ internal struct ModelComponent {
   var initParameters: [String]
   /// Super Init parameters for each of the properties.
   var superInitParameters: [String]
+  /// Encoders for Codable support.
+  var encodersCodable: [String]
+  /// Decoders for Codable support.
+  var decodersCodable: [String]
 
   /**
    Initialise a blank model component structure.
@@ -42,5 +46,7 @@ internal struct ModelComponent {
     description = []
     initParameters = []
     superInitParameters = []
+    encodersCodable = []
+    decodersCodable = []
   }
 }
