@@ -83,7 +83,9 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                             if let schemaPath = mapping["schema_path"].string, let eventType = mapping["event_type"].string {
                                 if eventType.contains("analytics") || eventType.contains("observability.zipkin") {
                                     if let dirPath = fileUrl?.deletingLastPathComponent() {
-                                        let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
+                                        // this is for d3_schema
+//                                        let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
+                                       let filePath = "\(dirPath.relativePath)/\(schemaPath)"
                                         generatedFiles += generateModel(at: filePath, destinationPath: destinationPath)
                                     }
                                 }
@@ -112,9 +114,10 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
     private func getDestinationPath(form pathUrl: URL) -> String {
         if pathUrl.lastPathComponent.contains(".xcodeproj") {
             let actualPath = pathUrl.deletingLastPathComponent()
-            return "\(actualPath.path)/\(actualPath.lastPathComponent)/Public/SchemaModels/D3Schema"
+            let targetName = pathUrl.lastPathComponent.components(separatedBy: ".").first!
+            return "\(actualPath.path)/\(targetName)/Analytics/Public/SchemaModels"
         } else {
-            return "\(pathUrl.path)/Public/SchemaModels/D3Schema"
+            return "\(pathUrl.path)/Public/SchemaModels"
         }
     }
 

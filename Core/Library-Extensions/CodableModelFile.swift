@@ -123,7 +123,7 @@ extension CodableModelFile: DefaultModelFileComponent {
     
     func genVariableDeclaration(_ name: String, _ type: String, _ isRequired: Bool, _ description: String? = nil) -> String {
         let optionalString = isRequired ? "" : "?"
-        var variable = "public var \(name): \(type)\(optionalString)"
+        var variable = "public internal(set) var \(name): \(type)\(optionalString)"
         if let description = description {
             variable = "\(formatDescriotion("\(description)"))\n" + variable
         }
@@ -131,11 +131,7 @@ extension CodableModelFile: DefaultModelFileComponent {
     }
     
     func genInitParameters(_ name: String, _ type: String, _ isRequired: Bool) -> String {
-        if isRequired {
-            return "\(name): \(type)"
-        } else {
-            return "\(name): \(type)? = nil"
-        }
+        return isRequired ? "\(name): \(type)" : "\(name): \(type)?"
     }
     
     func genCodableEncoder(_ name: String, _ type: String, _ isRequired: Bool) -> String {

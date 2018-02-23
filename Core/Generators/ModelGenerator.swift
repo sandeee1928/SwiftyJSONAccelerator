@@ -224,20 +224,24 @@ public struct ModelGenerator {
     }
     
     mutating func getJSON(fromFile: String) -> JSON? {
-        var updateFilePath = fromFile.replacingOccurrences(of: "classpath:",
-                                                           with: "../../../../../../events-core-schemas/src/main/resources")
-        updateFilePath = updateFilePath.replacingOccurrences(of: "/Users/mhanson5/schemasInvestigation/d3_schemas/output/schemas/collector/event/software-info.json",
-                                                             with: "../../../../collector/event/software-info.json")
-        let paths = updateFilePath.components(separatedBy: "/")
-        let sss = paths.filter { (strig) -> Bool in
-            return strig == ".."
+        var newFilePath = ""
+        if fromFile.contains("classpath:") {
+            newFilePath = fromFile.replacingOccurrences(of: "classpath:",
+                                                               with: "/Users/prokarma/Documents/Workspace/SourceCode/D3_Collector_Api/d3_collector_api/d3_api_base/src/main/resources")
+            newFilePath = URL(fileURLWithPath: newFilePath).absoluteString
+        } else {
+//            var updateFilePath = fromFile
+            let paths = fromFile.components(separatedBy: "/")
+            let sss = paths.filter { (strig) -> Bool in
+                return strig == ".."
+            }
+            guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else { return nil }
+            for _ in 0...sss.count {
+                currentPath.removeLast()
+            }
+            currentPath += paths[sss.count..<paths.count]
+            newFilePath = currentPath.joined(separator: "/")
         }
-        guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else { return nil }
-        for _ in 0...sss.count {
-            currentPath.removeLast()
-        }
-        currentPath += paths[sss.count..<paths.count]
-        let newFilePath = currentPath.joined(separator: "/")
         if let url = URL(string: newFilePath) {
             
             guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {

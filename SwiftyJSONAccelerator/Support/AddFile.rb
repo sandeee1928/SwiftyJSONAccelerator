@@ -28,7 +28,7 @@ project = Xcodeproj::Project.open(project_file)
 
 main_target = project.targets.first
 
-new_group = project.main_group.find_subpath(File.join(main_target.name, 'Public/SchemaModels/D3Schema'), true)
+new_group = project.main_group.find_subpath(File.join(main_target.name, 'Analytics/Public/SchemaModels'), true)
 puts "new group #{new_group}"
 new_group.files.each do |f|
     new_group.children.delete(f)
