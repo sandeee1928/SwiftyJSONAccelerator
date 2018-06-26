@@ -58,7 +58,8 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         resetErrorImage()
         authorNameTextField?.stringValue = NSFullUserName()
         jsonTypeSelectorSegment.selectedSegment = 1
-        companyNameTextField.stringValue = "2017 T-Mobile"
+        let year = Calendar.current.component(.year, from: Date())
+        companyNameTextField.stringValue = "\(year) T-Mobile"
         setAsFinalCheckbox.state = 0
     }
 

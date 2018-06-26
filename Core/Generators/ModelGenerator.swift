@@ -181,6 +181,9 @@ public struct ModelGenerator {
                                 if let model = models.last {
                                     type = "[\(model.fileName)]"
                                 }
+                            } else {
+                                let dataType = items["type"]?.string ?? "object"
+                                type = "[\(getDetailedValueType(dataType))]"
                             }
                         }
                     case .Object:
