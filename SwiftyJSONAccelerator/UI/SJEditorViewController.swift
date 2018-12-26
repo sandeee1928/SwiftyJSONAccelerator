@@ -61,6 +61,7 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
         let year = Calendar.current.component(.year, from: Date())
         companyNameTextField.stringValue = "\(year) T-Mobile"
         setAsFinalCheckbox.state = 0
+        enableNSCodingSupportCheckbox.state = 0
     }
 
     // MARK: Actions
@@ -81,14 +82,12 @@ class SJEditorViewController: NSViewController, NSTextViewDelegate {
                 for tempJson in jsonArray {
                     if let mappingList = tempJson["event_type_mapping"].array {
                         for mapping in mappingList {
-                            if let schemaPath = mapping["schema_path"].string, let eventType = mapping["event_type"].string {
-                                if eventType.contains("analytics") || eventType.contains("observability.zipkin") {
-                                    if let dirPath = fileUrl?.deletingLastPathComponent() {
-                                        // this is for d3_schema
-//                                        let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
-                                       let filePath = "\(dirPath.relativePath)/\(schemaPath)"
-                                        generatedFiles += generateModel(at: filePath, destinationPath: destinationPath)
-                                    }
+                            if let schemaPath = mapping["schema_path"].string {
+                                if let dirPath = fileUrl?.deletingLastPathComponent() {
+                                    // this is for d3_schema
+                                    // let filePath = "\(dirPath.relativePath)/schemas/\(schemaPath)"
+                                    let filePath = "\(dirPath.relativePath)/\(schemaPath)"
+                                    generatedFiles += generateModel(at: filePath, destinationPath: destinationPath)
                                 }
                             }
                         }

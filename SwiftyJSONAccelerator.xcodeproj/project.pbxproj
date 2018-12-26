@@ -350,6 +350,7 @@
 		9372452B1E12E789005387E8 /* External-Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				93F174531BD0707D007E7DFC /* SwiftyJSONAcceleratorTests */,
 				934F09D91E12CE6E00D983FF /* SwiftCLI */,
 			);
 			name = "External-Libraries";
@@ -425,7 +426,6 @@
 				93F174401BD0707D007E7DFC /* Products */,
 				93F174411BD0707D007E7DFC /* SwiftyJSONAccelerator */,
 				933CF3941E11699700F9C412 /* SwiftyJSONAccelerator-CLI */,
-				93F174531BD0707D007E7DFC /* SwiftyJSONAcceleratorTests */,
 			);
 			sourceTree = "<group>";
 		};

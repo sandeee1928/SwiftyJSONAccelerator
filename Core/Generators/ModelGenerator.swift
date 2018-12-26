@@ -35,7 +35,7 @@ public struct ModelGenerator {
     mutating func generate() -> [ModelFile] {
         if configuration.jsonType == .jsonSchema {
             configuration.modelMappingLibrary = .Codable
-            return self.generateModelForJSON2(baseContent, getFileName(form: baseContent), true)
+            return self.generateModelForJSON2(baseContent, getFileName(form: baseContent), true, fileUrl: configuration.jsonFileURL!)
         } else {
             return self.generateModelForJSON(baseContent, configuration.baseClassName, true)
         }
@@ -126,7 +126,7 @@ public struct ModelGenerator {
         }
     }
     
-    mutating func generateModelForJSON2(_ object: JSON, _ defaultClassName: String, _ isTopLevelObject: Bool) -> [ModelFile] {
+    mutating func generateModelForJSON2(_ object: JSON, _ defaultClassName: String, _ isTopLevelObject: Bool, fileUrl: URL) -> [ModelFile] {
         let className = NameGenerator.fixClassName(defaultClassName, self.configuration.prefix, isTopLevelObject)
         let filePathUrl = configuration.jsonFileURL
         var modelFiles: [ModelFile] = []
@@ -136,9 +136,9 @@ public struct ModelGenerator {
             currentModel.sourceJSON = object
             currentModel.description = rootObject["description"]?.string
             var superInitPrams = [String]()
-            
-            if let extends = rootObject["extends"]?["$ref"].string, let extendsJSON = getJSON(fromFile: extends) {
-                let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+            if let extends = rootObject["extends"]?["$ref"].string,
+                let extendsJSON = getJSON(from: extends, with: fileUrl.absoluteString) {
+                let models = generateModelForJSON2(extendsJSON.0, getFileName(form: extendsJSON.0), false, fileUrl: extendsJSON.1)
                 modelFiles = modelFiles + models
                 if let model = models.last {
                     currentModel.superClassName = model.fileName
@@ -156,10 +156,10 @@ public struct ModelGenerator {
                     var objectName = NameGenerator.fixClassName(variableName, "", false)
                     
                     if let _ = value["properties"].dictionary {
-                        let models = generateModelForJSON2(value, variableName, false)
+                        let models = generateModelForJSON2(value, variableName, false, fileUrl: fileUrl)
                         modelFiles = modelFiles + models
-                    } else if let ref = value["$ref"].string, let extendsJSON = getJSON(fromFile: ref) {
-                        let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+                    } else if let ref = value["$ref"].string, let extendsJSON = getJSON(from: ref, with: fileUrl.absoluteString) {
+                        let models = generateModelForJSON2(extendsJSON.0, getFileName(form: extendsJSON.0), false, fileUrl: extendsJSON.1)
                         modelFiles = modelFiles + models
                         if let model = models.last {
                             objectName = model.fileName
@@ -175,8 +175,8 @@ public struct ModelGenerator {
                     switch variableType {
                     case .Array:
                         if let items = value["items"].dictionary {
-                            if let ref = items["$ref"]?.string, let extendsJSON = getJSON(fromFile: ref) {
-                                let models = generateModelForJSON2(extendsJSON, getFileName(form: extendsJSON), false)
+                            if let ref = items["$ref"]?.string, let extendsJSON = getJSON(from: ref, with: fileUrl.absoluteString) {
+                                let models = generateModelForJSON2(extendsJSON.0, getFileName(form: extendsJSON.0), false, fileUrl: extendsJSON.1)
                                 modelFiles = modelFiles + models
                                 if let model = models.last {
                                     type = "[\(model.fileName)]"
@@ -226,19 +226,21 @@ public struct ModelGenerator {
         }
     }
     
-    mutating func getJSON(fromFile: String) -> JSON? {
+    mutating func getJSON(fromFile: String, updateJsonFileURL: Bool = true) -> JSON? {
         var newFilePath = ""
         if fromFile.contains("classpath:") {
             newFilePath = fromFile.replacingOccurrences(of: "classpath:",
-                                                               with: "/Users/prokarma/Documents/Workspace/SourceCode/D3_Collector_Api/d3_collector_api/d3_api_base/src/main/resources")
+                                                               with: "/Users/sakumar/Documents/Workspace/SourceCode/D3_Collector_Api/d3_collector_api/d3_api_base/src/main/resources")
             newFilePath = URL(fileURLWithPath: newFilePath).absoluteString
         } else {
-//            var updateFilePath = fromFile
             let paths = fromFile.components(separatedBy: "/")
             let sss = paths.filter { (strig) -> Bool in
                 return strig == ".."
             }
-            guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else { return nil }
+            guard var currentPath = configuration.jsonFileURL?.absoluteString.components(separatedBy: "/") else {
+                print("File note found ===========>>>>>>>>>>>>>> \(fromFile)")
+                return nil
+            }
             for _ in 0...sss.count {
                 currentPath.removeLast()
             }
@@ -248,15 +250,54 @@ public struct ModelGenerator {
         if let url = URL(string: newFilePath) {
             
             guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
+                print("File note found ===========>>>>>>>>>>>>>> \(fromFile)")
                 return nil
             }
-            configuration.updateJsonFileURL(url: url)
+            if updateJsonFileURL || fromFile.contains("classpath:") {
+                configuration.updateJsonFileURL(url: url)
+            }
+            
             if let object = JSONHelper.convertToObject(jsonString).1 {
                 return JSON(object)
             }
         }
         
+        print("File note found ===========>>>>>>>>>>>>>> \(fromFile)")
+        return nil
+    }
+    
+    mutating func getJSON(from filePath: String, with relativePath: String) -> (JSON, URL)? {
+        var newFilePath = ""
+        if filePath.contains("classpath:") {
+            newFilePath = filePath.replacingOccurrences(of: "classpath:",
+                                                        with: "/Users/sakumar/Documents/Workspace/SourceCode/D3_Collector_Api/d3_collector_api/d3_api_base/src/main/resources")
+            newFilePath = URL(fileURLWithPath: newFilePath).absoluteString
+        } else {
+            //            var updateFilePath = filePath
+            let paths = filePath.components(separatedBy: "/")
+            let sss = paths.filter { (strig) -> Bool in
+                return strig == ".."
+            }
+            var currentPath = relativePath.components(separatedBy: "/")
+            for _ in 0...sss.count {
+                currentPath.removeLast()
+            }
+            currentPath += paths[sss.count..<paths.count]
+            newFilePath = currentPath.joined(separator: "/")
+        }
+        if let url = URL(string: newFilePath) {
+            
+            guard let jsonData = try? Data(contentsOf: url), let jsonString = String(data: jsonData, encoding: .utf8) else {
+                print("File note found ===========>>>>>>>>>>>>>> \(filePath)")
+                return nil
+            }
+            
+            if let object = JSONHelper.convertToObject(jsonString).1 {
+                return (JSON(object), url)
+            }
+        }
         
+        print("File note found ===========>>>>>>>>>>>>>> \(filePath)")
         return nil
     }
 

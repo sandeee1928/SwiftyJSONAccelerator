@@ -127,8 +127,14 @@ extension FileGenerator {
         
         if configuration.jsonType == .jsonSchema &&
             (modelFile.component.declarations.count + modelFile.component.superInitParameters.count) > 0 {
-            let encoders = modelFile.component.encodersCodable.map({ doubleTab + $0 }).joined(separator: "\n")
-            let decoders = modelFile.component.decodersCodable.map({ doubleTab + $0 }).joined(separator: "\n")
+            
+            var sortedEncoders = modelFile.component.encodersCodable.sorted { return ($0 < $1) }
+            sortedEncoders.sort { return !$0.contains("IfPresent") && $1.contains("IfPresent") }
+            let encoders = sortedEncoders.map({ doubleTab + $0 }).joined(separator: "\n")
+            
+            var sortedDecoders = modelFile.component.decodersCodable.sorted { return ($0 < $1) }
+            sortedDecoders.sort { return !$0.contains("IfPresent") && $1.contains("IfPresent") }
+            let decoders = sortedDecoders.map({ doubleTab + $0 }).joined(separator: "\n")
             content = content.replacingOccurrences(of: "{CODABLE_DECODERS}", with: decoders)
             content = content.replacingOccurrences(of: "{CODABLE_ENCODERS}", with: encoders)
             
